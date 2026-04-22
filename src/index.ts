@@ -25,24 +25,6 @@ function log(level: "INFO" | "ERROR", message: string, meta?: Record<string, unk
   );
 }
 
-function escapeHtml(input: string) {
-  return input
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-}
-
-app.get("/health", (_req, res) => {
-  return res.status(200).json({
-    ok: true,
-    service: "receptor",
-    uptimeSec: Math.round(process.uptime()),
-    timestamp: new Date().toISOString(),
-  });
-});
-
 app.get("/boletines/:boletinID", async (req, res) => {
   try {
     const boletinID = String(req.params.boletinID ?? "").trim();
@@ -81,9 +63,6 @@ app.get("/boletines/:boletinID", async (req, res) => {
 
     const archivoUrl = String(result.Item.archivoUrl ?? "").trim();
     const contenido = String(result.Item.contenido ?? "");
-    const safeBoletinID = escapeHtml(boletinID);
-    const safeContenido = escapeHtml(contenido);
-    const safeArchivoUrl = escapeHtml(archivoUrl);
 
     const html = `
     <!doctype html>
@@ -91,7 +70,7 @@ app.get("/boletines/:boletinID", async (req, res) => {
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Boletín ${safeBoletinID}</title>
+        <title>Boletín ${boletinID}</title>
         <style>
           body { font-family: Arial, sans-serif; margin: 24px; line-height: 1.5; }
           .contenedor { max-width: 760px; margin: 0 auto; }
@@ -101,9 +80,9 @@ app.get("/boletines/:boletinID", async (req, res) => {
       <body>
         <div class="contenedor">
           <h1>Boletín</h1>
-          <p>${safeContenido}</p>
-          <p><a href="${safeArchivoUrl}" target="_blank" rel="noopener noreferrer">Abrir archivo en S3</a></p>
-          <img src="${safeArchivoUrl}" alt="Imagen del boletín" />
+          <p>${contenido}</p>
+          <p><a href="${archivoUrl}" target="_blank" rel="noopener noreferrer">Abrir archivo en S3</a></p>
+          <img src="${archivoUrl}" alt="Imagen del boletín" />
         </div>
       </body>
     </html>
